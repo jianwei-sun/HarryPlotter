@@ -59,7 +59,7 @@ classdef HarryPlotter < handle
                 if(rows >= 1 && cols >= 1)
                     obj.rows = rows;
                     obj.cols = cols;
-                    obj.gridMatrix = false(round(rows), round(cols));
+                    obj.gridMatrix = zeros(round(rows), round(cols));
                 else
                     error("Rows and Cols must be greater than or equal to 1.");
                 end
@@ -109,7 +109,7 @@ classdef HarryPlotter < handle
                 availability = false;
                 for r = 1:obj.rows
                     for c = 1:obj.cols
-                        if(~obj.gridMatrix(r, c))
+                        if(obj.gridMatrix(r,c) == 0)
                             availability = true;
                             row = r;
                             col = c;
@@ -147,7 +147,7 @@ classdef HarryPlotter < handle
             % Check if region already contains another plot
             for r = row:(row + height - 1)
                 for c = col:(col + width - 1)
-                    if(obj.gridMatrix(r, c))
+                    if(obj.gridMatrix(r,c) > 0)
                         error("Selected plotting area already contains another plot.");
                     end
                 end
@@ -158,14 +158,14 @@ classdef HarryPlotter < handle
             ax.Units = 'pixels';
             for r = row:(row + height - 1)
                 for c = col:(col + width - 1)
-                    obj.gridMatrix(r,c) = true;
+                    obj.gridMatrix(r,c) = length(obj.plots) + 1;
                 end
             end
             % Store handle information
-            numPlots = length(obj.plots);
-            obj.plots(numPlots + 1).handle = ax;
-            obj.plots(numPlots + 1).start = [row, col];
-            obj.plots(numPlots + 1).size = [height, width];
+            newPlotIndex = length(obj.plots) + 1;
+            obj.plots(newPlotIndex).handle = ax;
+            obj.plots(newPlotIndex).start = [row, col];
+            obj.plots(newPlotIndex).size = [height, width];
             
             % Update the plot
             obj.redraw();  
@@ -188,166 +188,71 @@ classdef HarryPlotter < handle
             switch length(varargin)
                 case 0
                     if(~isempty(obj.plots))
-                        delete(obj.plots(length(obj.plots)).handle);
-                        % clear the grid matrix rows and columns to free
-                        % the area
-                        obj.plots(length(obj.plots)) = [];
+                        obj.remove_axis(length(obj.plots));
                     end
                 case 1
                     index = varargin{1};
                     if(~isnumeric(index) || index < 1 || index > length(obj.plots))
                         error("When providing single argument, it must be a valid index");
                     end
-                    delete(obj.plots(index).handle);
-                    obj.plots(index) = [];
+                    obj.remove_axis(index);
                 case 2
-                    
+                    if(varargin{1} < 1 || varargin{1} > obj.rows || varargin{2} < 1 || varargin{2} > obj.cols)
+                        error("Index exceeds figure dimensions");
+                    end
+                    if(obj.gridMatrix(varargin{1},varargin{2}) > 0)
+                        obj.remove_axis(obj.gridMatrix(varargin{1},varargin{2}));
+                    end
                 case 4
-                    
+                    if(varargin{1} < 1 || varargin{1} > obj.rows || varargin{2} < 1 || varargin{2} > obj.cols || varargin{3} < 0 || varargin{4} < 0)
+                        error("Index exceeds figure dimensions");
+                    end
+                    if((varargin{1} + varargin{3}) > obj.rows)
+                        varargin{3} = obj.rows - varargin{1};
+                    end
+                    if((varargin{2} + varargin{4}) > obj.cols)
+                        varargin{4} = obj.cols - varargin{2};
+                    end
+                    indicesToRemove = [];
+                    for r = varargin{1}:(varargin{1} + varargin{3})
+                        for c = varargin{2}:(varargin{2} + varargin{4})
+                            indicesToRemove(end + 1) = obj.gridMatrix(r,c);
+                        end
+                    end
+                    indicesToRemove = sort(unique(indicesToRemove), 'descend');
+                    for i = 1:length(indicesToRemove)
+                        obj.remove_axis(indicesToRemove(i));
+                    end
                 otherwise
                     error("Invalid number of arguments.");
             end
-            
+            obj.redraw();
         end
-        
-%         %
-%         % Plot titles
-%         %
-%         function title(obj, varargin)
-%             [plotIndex, varargin] = obj.parse_varargin(varargin{:});
-%             title(obj.plots(plotIndex).handle, varargin{:});
-%             obj.redraw();
-%         end
-%         
-%         %
-%         % Defining X, Y, Z labels
-%         %
-%         function xlabel(obj, varargin)
-%             obj.label('x', varargin{:});
-%         end
-%         function ylabel(obj, varargin)
-%             obj.label('y', varargin{:});
-%         end
-%         function zlabel(obj, varargin)
-%             obj.label('z', varargin{:});
-%         end
-%         
-%         %
-%         % Simple plotter for plotting at next available area
-%         %
-%         function handle = plot(obj, varargin)            
-%             availability = false;
-%             for r = 1:obj.rows
-%                 for c = 1:obj.cols
-%                     if(~obj.gridMatrix(r, c))
-%                         availability = true;
-%                         row = r;
-%                         col = c;
-%                         break;
-%                     end
-%                 end
-%                 if(availability)
-%                     break;
-%                 end
-%             end
-%             if(~availability)
-%                 error("Plot is full.");
-%             end
-%             handle = obj.plot_at([row, col, 1, 1], varargin{:});
-%         end
-%         
-%         %
-%         % Simple plotter for specifying where to plot
-%         %
-%         function handle = plot_at(obj, dimensions, varargin)
-%             % First argument specifies the location and size of the plot
-%             if(length(dimensions) ~= 4 && length(dimensions) ~= 2)
-%                 error("Incorrect dimensions. Expected [starting row, starting column, height, width] or [starting row, starting column].");
-%             end
-%             row = dimensions(1);
-%             col = dimensions(2);
-%             if(length(dimensions) == 4)
-%                 height = dimensions(3);
-%                 width = dimensions(4);
-%             else
-%                 height = 1;
-%                 width = 1;
-%             end
-%             % Check index bounds
-%             if(row < 1 || row > obj.rows || col < 1 || col > obj.cols || (row + height - 1) > obj.rows || (col + width - 1) > obj.cols)
-%                 error("Selected plotting area has index errors.");
-%             end
-%             % Check if region already contains another plot
-%             for r = row:(row + height - 1)
-%                 for c = col:(col + width - 1)
-%                     if(obj.gridMatrix(r, c))
-%                         error("Selected plotting area already contains another plot.");
-%                     end
-%                 end
-%             end
-% 
-%             % Create the plot at the specified location and mark the area as unavilable
-%             ax = axes;
-%             ax.Units = 'pixels';
-%             for r = row:(row + height - 1)
-%                 for c = col:(col + width - 1)
-%                     obj.gridMatrix(r,c) = true;
-%                 end
-%             end
-%             % Store handle information
-%             numPlots = length(obj.plots);
-%             obj.plots(numPlots + 1).handle = ax;
-%             obj.plots(numPlots + 1).start = [row, col];
-%             obj.plots(numPlots + 1).size = [height, width];
-%             
-%             % Update the plot
-%             obj.redraw();
-%             
-%             % Plot at the axes
-%             plot(ax, varargin{:});
-%             
-%             % Return a plot index
-%             handle = length(obj.plots);
-%         end
     end
    
     methods(Access = private)
-%         %
-%         % Creating plot labels
-%         %
-%         function label(obj, axis, varargin)
-%             [plotIndex, varargin] = obj.parse_varargin(varargin{:});
-%             switch axis
-%                 case 'x'
-%                     xlabel(obj.plots(plotIndex).handle, varargin{:});
-%                 case 'y'
-%                     ylabel(obj.plots(plotIndex).handle, varargin{:});
-%                 case 'z'
-%                     zlabel(obj.plots(plotIndex).handle, varargin{:});
-%             end
-%             obj.redraw();
-%         end
-%         
-%         %
-%         % Parsing varargin with plot index
-%         %
-%         function [plotIndex, varargin] = parse_varargin(obj, varargin)
-%             if(isempty(varargin))
-%                 varargin = {length(obj.plots)};
-%             end
-%             if(isnumeric(varargin{1}))
-%                 plotIndex = varargin{1};
-%                 varargin = {varargin{2:end}};
-%                 if(isempty(varargin))
-%                     varargin = {''};
-%                 end
-%             else
-%                 plotIndex = length(obj.plots);
-%             end
-%             if(plotIndex < 1 || plotIndex > length(obj.plots))
-%                 error("Plot index does not exist.");
-%             end
-%         end
+        %
+        % Deleting an axis and all associated properties
+        %
+        function remove_axis(obj, index)
+            if(index == 0)
+                return;
+            end
+            delete(obj.plots(index).handle);
+            for r = obj.plots(index).start(1):(obj.plots(index).start(1) + obj.plots(index).size(1))
+                for c = obj.plots(index).start(2):(obj.plots(index).start(2) + obj.plots(index).size(2))
+                    obj.gridMatrix(r,c) = 0;
+                end
+            end
+            for r = 1:obj.rows
+                for c = 1:obj.cols
+                    if(obj.gridMatrix(r,c) >= index)
+                        obj.gridMatrix(r,c) = obj.gridMatrix(r,c) - 1;
+                    end
+                end
+            end
+            obj.plots(index) = [];
+        end
         
         %
         % Closing figure window
