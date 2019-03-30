@@ -182,6 +182,15 @@ classdef HarryPlotter < handle
         end
         
         %
+        % Clear all axes
+        %
+        function clear_all(obj)
+            for index = length(obj.plots):-1:1
+                obj.remove_axis(index);
+            end
+        end
+        
+        %
         % Remove an axis or axes
         %
         function clear(obj, varargin)
