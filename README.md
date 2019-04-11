@@ -13,7 +13,8 @@ f4 = HarryPlotter();
 
 In the first line, the first argument provides a name to the figure. The following arguments specify the number of rows and columns into which the figure is divided. Different ways of calling the constructor are also illustrated. If the number of rows and columns are not provided, they default to one each. 
 
-Similar to the `subplot` function in MATLAB, HarryPlotter allows multiple plots to be added to the same figure. Additionally, these figures can span multiple grids defined by the number of rows and columns in the figure.
+### Plotting
+Similar to the `subplot` function in MATLAB, HarryPlotter allows multiple plots to be added to the same figure in a stack fasion. Additionally, these figures can span multiple grids defined by the number of rows and columns in the figure.
 
 ```
 f1.subplot(1, 1, 1, 2);
@@ -45,3 +46,37 @@ Note that the `.update()` function should be called to redraw the plots and appl
 
 ![Sample plot](samplePlot.png)
 
+The plot can then be saved and exported for use in situations where white space cannot be wasted, such as in two-column papers. 
+
+### Clearing Plots
+Axes are added to/removed from the figure in a stack fashion. The index into the stack can be used to select a particular axis on which plot, or to delete the axis. Note that axes are 1-indexed. 
+
+The HarryPlotter class can also be used in an interactive manner. With the help of the `.clear` and `.clear_all` functions, you can delete any existing plots on the current figure. 
+
+```
+f1.clear(2, 1, 0, 1);
+f1.clear(1, 1);
+f1.clear(3);
+f1.clear();
+```
+
+Similar to the `.subplot` functions, a variable number of arguments can be passed in. In four argument mode, `.clear` removes all plots that are selected by the four parameters. In two argument mode, only the plot at the specified location is removed. When one argument is specified, the argument is treated as the index into the axes stack. And, when no arguments are present, the most recent plot is removed. 
+
+Additionally, `.clear_all` removes all plots on the current figure.
+
+```
+f1.clear_all();
+```
+
+### Retrieving Axis Handles
+The handle for a particular axis can be retrieved by specifying the axis' index into the axes stack, in order to plot directly to that axis. Note that axes are 1-indexed.
+
+```
+h1 = f1.get_axis(2);
+plot(h1, 1:10, 'g');
+
+f1.update();
+```
+
+## Author
+Created by **Jianwei Sun** to help anyone who wants to remove annoying white space in MATLAB figures.
