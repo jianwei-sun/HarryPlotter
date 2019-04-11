@@ -213,18 +213,18 @@ classdef HarryPlotter < handle
                         obj.remove_axis(obj.gridMatrix(varargin{1},varargin{2}));
                     end
                 case 4
-                    if(varargin{1} < 1 || varargin{1} > obj.rows || varargin{2} < 1 || varargin{2} > obj.cols || varargin{3} < 0 || varargin{4} < 0)
+                    if(varargin{1} < 1 || varargin{1} > obj.rows || varargin{2} < 1 || varargin{2} > obj.cols || varargin{3} < 1 || varargin{4} < 1)
                         error("Index exceeds figure dimensions");
                     end
-                    if((varargin{1} + varargin{3}) > obj.rows)
-                        varargin{3} = obj.rows - varargin{1};
+                    if((varargin{1} + varargin{3} - 1) > obj.rows)
+                        varargin{3} = obj.rows - varargin{1} + 1;
                     end
-                    if((varargin{2} + varargin{4}) > obj.cols)
-                        varargin{4} = obj.cols - varargin{2};
+                    if((varargin{2} + varargin{4} - 1) > obj.cols)
+                        varargin{4} = obj.cols - varargin{2} + 1;
                     end
                     indicesToRemove = [];
-                    for r = varargin{1}:(varargin{1} + varargin{3})
-                        for c = varargin{2}:(varargin{2} + varargin{4})
+                    for r = varargin{1}:(varargin{1} + varargin{3} - 1)
+                        for c = varargin{2}:(varargin{2} + varargin{4} - 1)
                             indicesToRemove(end + 1) = obj.gridMatrix(r,c);
                         end
                     end
@@ -248,8 +248,8 @@ classdef HarryPlotter < handle
                 return;
             end
             delete(obj.plots(index).handle);
-            for r = obj.plots(index).start(1):(obj.plots(index).start(1) + obj.plots(index).size(1))
-                for c = obj.plots(index).start(2):(obj.plots(index).start(2) + obj.plots(index).size(2))
+            for r = obj.plots(index).start(1):(obj.plots(index).start(1) + obj.plots(index).size(1) - 1)
+                for c = obj.plots(index).start(2):(obj.plots(index).start(2) + obj.plots(index).size(2) - 1)
                     obj.gridMatrix(r,c) = 0;
                 end
             end
