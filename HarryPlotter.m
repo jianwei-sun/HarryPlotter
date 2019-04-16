@@ -82,7 +82,7 @@ classdef HarryPlotter < handle
             obj.fig.CloseRequestFcn = @obj.on_window_close;
             
             if(rows == 1 && cols == 1)
-                obj.subplot([1,1,1,1]);
+                obj.subplot(1,1,1,1);
             end
         end
         
