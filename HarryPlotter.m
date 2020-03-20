@@ -98,6 +98,13 @@ classdef HarryPlotter < handle
         % Call this function to update the figure
         %
         function update(obj)
+            set(findall(obj.fig, '-property', 'FontSize'), 'FontSize', 14);
+            graphicsObjects = findall(obj.fig, '-property', 'LineWidth');
+            for i = 1:length(graphicsObjects)
+                if(isa(graphicsObjects(i), 'matlab.graphics.chart.primitive.Line'))
+                    graphicsObjects(i).LineWidth = 2;
+                end
+            end
             obj.redraw();
         end
         
