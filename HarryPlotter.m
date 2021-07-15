@@ -1,3 +1,19 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% HarryPlotter
+% version 1.0.0
+%
+% A simple plotting library for MATLAB to minimize wasted white space 
+% around multiple plots on the same figure. Usage instructions available at
+% https://github.com/OrcaPanda/HarryPlotter
+%
+% Created by: Jianwei Sun
+%
+% GitHub: https://github.com/OrcaPanda/HarryPlotter
+% MATLAB Central File Exchange: https://www.mathworks.com/matlabcentral/fileexchange/71730-harryplotter
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 classdef HarryPlotter < handle
     properties(Access = public)
         % Padding between all drawable areas in plot (pixels)
